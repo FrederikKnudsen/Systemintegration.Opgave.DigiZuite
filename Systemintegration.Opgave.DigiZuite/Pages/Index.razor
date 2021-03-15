@@ -1,0 +1,60 @@
+﻿@page "/"
+@using Services
+@using Utilities
+@inject ConvertPublisher convertPublisher
+@inject RoutingKey routingKey
+
+<form>
+    <div class="border border-dark w-25" style="min-width: 400px;">
+        <div class="justify-content-center p-2">
+            <h1><b>Convert File</b></h1>
+            <br />
+
+            <div class="form-group">
+                <h5><b>Filename</b></h5>
+                <input type="text" class="form-control" @bind-value="convertRequest.FileName">
+            </div>
+
+            <div class="form-group w-25">
+                <h5><b>Type</b></h5>
+                <select class="form-control" @bind="convertRequest.Type">
+                    @foreach (var item in types)
+                    {
+                        <option>@item</option>
+                    }
+                </select>
+            </div>
+
+                <div class="form-group">
+                    <h5><b>Size</b></h5>
+                    <input type="text" class="form-control" @bind-value="convertRequest.Size">
+                </div>
+                <button @onclick="SubmitForm" class="btn btn-primary">Submit</button>
+        </div>
+    </div>
+</form>
+
+
+@code{
+    private ConvertRequest convertRequest = new ConvertRequest();
+    private List<string> types;
+
+    protected override async Task OnInitializedAsync()
+    {
+        types = routingKey.GetTypes();
+
+        convertRequest.Type = types.FirstOrDefault();
+    }
+
+    public class ConvertRequest
+    {
+        public string FileName { get; set; }
+        public string Type { get; set; }
+        public int Size { get; set; }
+    }
+
+    void SubmitForm()
+    {
+        convertPublisher.SendMessage(convertRequest);
+    }
+}
